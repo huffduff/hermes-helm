@@ -10,7 +10,8 @@ A clean, opinionated Helm chart for deploying [Hermes Agent](https://github.com/
 
 | Resource | Always | Conditional |
 |----------|--------|-------------|
-| Deployment | ✓ | |
+| Gateway | ✓ | |
+| Dashbaord | | `dashboard.enabled` |
 | Service | ✓ | |
 | ServiceAccount | ✓ | `serviceAccount.create` |
 | ConfigMap (env) | ✓ | |
@@ -46,25 +47,25 @@ helm upgrade hermes ./chart -f my-values.yaml
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ Pod                                                 │
-│                                                     │
-│  ┌─────────────┐    ┌────────────────────────────┐  │
+┌──────────────────────────────────────────────────────┐
+│ Pod                                                  │
+│                                                      │
+│  ┌──────────────┐    ┌────────────────────────────┐  │
 │  │ init: gh-auth│───▶│ hermes (gateway run)       │  │
 │  │ (optional)   │    │                            │  │
-│  └─────────────┘    │  ┌──────────────────────┐  │  │
+│  └──────────────┘    │  ┌──────────────────────┐  │  │
 │                      │  │ Telegram Bot         │  │  │
-│                      │  │ Discord Bot          │  │  │
-│                      │  │ API Server (:8642)   │  │  │
-│                      │  └──────────────────────┘  │  │
-│                      └────────────┬───────────────┘  │
+│  ┌──────────────┐    │  │ Discord Bot          │  │  │
+│  │ dashboard    │    │  │ API Server (:8642)   │  │  │
+│  │ (optional)   │    │  └──────────────────────┘  │  │
+│  └──────────────┘    └────────────┬───────────────┘  │
 │                                   │                  │
 │                      ┌────────────▼───────────────┐  │
 │                      │ /opt/data (PVC)            │  │
 │                      │  sessions/ skills/ memory/ │  │
 │                      │  config.yaml .env logs/    │  │
 │                      └────────────────────────────┘  │
-└─────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────┘
                           │
               ┌───────────▼────────────┐
               │ Service (ClusterIP)    │
@@ -95,9 +96,16 @@ helm upgrade hermes ./chart -f my-values.yaml
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `hermes.home` | string | `/opt/data` | HERMES_HOME path |
-| `hermes.command` | list | `["gateway", "run"]` | Command args passed to the entrypoint |
 | `hermes.config` | string | `null` | Contents of `config.yaml` (mounted via ConfigMap) |
 | `hermes.soul` | string | `null` | Contents of `SOUL.md` persona file |
+
+#### Dashboard
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `dashboard.enabled` | bool | `false` | Enable dashboard sidecar |
+| `dashboard.port` | int | `9119` | Port |
+| `dashboard.annotations` | string | `null` | Contents of `SOUL.md` persona file |
 
 #### Environment & Secrets
 
