@@ -1,0 +1,42 @@
+{{/*
+Renders notes shown after helm install/upgrade.
+*/}}
+==========================================================
+ _  _ ___ ___ __  __ ___ ___
+| || | __| _ \  \/  | __/ __|
+| __ | _||   / |\/| | _|\__ \
+|_||_|___|_|_\_|  |_|___|___/  Agent v{{ .Chart.AppVersion }}
+
+==========================================================
+
+{{- if .Values.apiServer.enabled }}
+
+API Server:
+  kubectl port-forward svc/{{ include "hermes.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+
+  Then: curl http://localhost:{{ .Values.service.port }}/v1/models
+{{- end }}
+
+{{- if .Values.gateway.telegram.enabled }}
+
+Telegram: Bot is connected. Send a message to your bot to start.
+{{- end }}
+
+{{- if .Values.gateway.discord.enabled }}
+
+Discord: Bot is connected. Mention the bot or DM it to start.
+{{- end }}
+
+{{- if not .Values.persistence.enabled }}
+
+⚠ Persistence is DISABLED. Sessions, skills, and memory will be lost on pod restart.
+  Set persistence.enabled=true for production use.
+{{- end }}
+
+{{- if .Values.github.enabled }}
+
+GitHub CLI: gh is authenticated via init container.
+{{- end }}
+
+Logs:
+  kubectl logs -f deploy/{{ include "hermes.fullname" . }}

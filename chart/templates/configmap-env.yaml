@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "hermes.fullname" . }}-env
+  labels:
+    {{- include "hermes.labels" . | nindent 4 }}
+data:
+  # Core
+  HERMES_HOME: {{ .Values.hermes.home | quote }}
+
+  # API Server
+  {{- if .Values.apiServer.enabled }}
+  API_SERVER_ENABLED: "true"
+  API_SERVER_HOST: {{ .Values.apiServer.host | quote }}
+  API_SERVER_PORT: {{ .Values.apiServer.port | quote }}
+  API_SERVER_MODEL_NAME: {{ .Values.apiServer.modelName | quote }}
+  {{- if .Values.apiServer.corsOrigins }}
+  API_SERVER_CORS_ORIGINS: {{ .Values.apiServer.corsOrigins | quote }}
+  {{- end }}
+  {{- else }}
+  API_SERVER_ENABLED: "false"
+  {{- end }}
+
+  # Telegram
+  {{- if .Values.gateway.telegram.enabled }}
+  {{- if .Values.gateway.telegram.homeChannel }}
+  TELEGRAM_HOME_CHANNEL: {{ .Values.gateway.telegram.homeChannel | quote }}
+  {{- end }}
+  {{- if .Values.gateway.telegram.allowedUsers }}
+  TELEGRAM_ALLOWED_USERS: {{ .Values.gateway.telegram.allowedUsers | quote }}
+  {{- end }}
+  {{- end }}
+
+  # Discord
+  {{- if .Values.gateway.discord.enabled }}
+  {{- if .Values.gateway.discord.homeChannel }}
+  DISCORD_HOME_CHANNEL: {{ .Values.gateway.discord.homeChannel | quote }}
+  {{- end }}
+  {{- if .Values.gateway.discord.allowedUsers }}
+  DISCORD_ALLOWED_USERS: {{ .Values.gateway.discord.allowedUsers | quote }}
+  {{- end }}
+  {{- end }}
+
+  # Gateway
+  GATEWAY_ALLOW_ALL_USERS: {{ .Values.gateway.allowAllUsers | quote }}
+
+  # User-defined plain env vars
+  {{- range $key, $value := .Values.env }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

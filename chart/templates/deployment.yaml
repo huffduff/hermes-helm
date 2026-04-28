@@ -1,0 +1,163 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hermes.fullname" . }}
+  labels:
+    {{- include "hermes.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  # Hermes is stateful — Recreate avoids two pods fighting over the PVC.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "hermes.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # Roll pods when ConfigMap or Secret content changes.
+        checksum/env: {{ include (print $.Template.BasePath "/configmap-env.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "hermes.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "hermes.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # ── Init Containers ──────────────────────────────────────────────
+      initContainers:
+        {{- if .Values.github.enabled }}
+        # Authenticate the GitHub CLI so `gh` works in every Hermes session.
+        - name: gh-auth
+          image: {{ include "hermes.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              # Activate the venv so `gh` (and any pip-installed tools) are on PATH.
+              source /opt/hermes/.venv/bin/activate
+              if [ -n "$GITHUB_TOKEN" ]; then
+                echo "$GITHUB_TOKEN" | gh auth login --with-token
+                echo "✓ gh authenticated"
+              else
+                echo "⚠ GITHUB_TOKEN not set — skipping gh auth"
+              fi
+          envFrom:
+            {{- if .Values.existingSecret }}
+            - secretRef:
+                name: {{ .Values.existingSecret }}
+            {{- end }}
+            {{- if .Values.secrets }}
+            - secretRef:
+                name: {{ include "hermes.fullname" . }}
+            {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.hermes.home }}
+        {{- end }}
+        {{- with .Values.extraInitContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      # ── Main Container ───────────────────────────────────────────────
+      containers:
+        - name: hermes
+          image: {{ include "hermes.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.hermes.command }}
+          args:
+            {{- toYaml .Values.hermes.command | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: api
+              containerPort: {{ .Values.apiServer.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "hermes.fullname" . }}-env
+            {{- if .Values.existingSecret }}
+            - secretRef:
+                name: {{ .Values.existingSecret }}
+            {{- end }}
+            {{- if .Values.secrets }}
+            - secretRef:
+                name: {{ include "hermes.fullname" . }}
+            {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.hermes.home }}
+            {{- if .Values.hermes.config }}
+            - name: config
+              mountPath: {{ .Values.hermes.home }}/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            {{- end }}
+            {{- if .Values.hermes.soul }}
+            - name: config
+              mountPath: {{ .Values.hermes.home }}/SOUL.md
+              subPath: SOUL.md
+              readOnly: true
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+
+      # ── Volumes ──────────────────────────────────────────────────────
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "hermes.fullname" . ) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if or .Values.hermes.config .Values.hermes.soul }}
+        - name: config
+          configMap:
+            name: {{ include "hermes.fullname" . }}-config
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

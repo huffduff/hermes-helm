@@ -1,0 +1,29 @@
+# ==============================================================================
+# Example: Minimal — API server only, no messaging platforms
+# ==============================================================================
+# Usage:
+#   helm install hermes ./chart -f examples/minimal-api.yaml
+# ==============================================================================
+
+hermes:
+  command: ["gateway", "run"]
+
+secrets:
+  OPENROUTER_API_KEY: "sk-or-v1-your-key-here"
+  API_SERVER_KEY: "your-api-server-key"
+
+apiServer:
+  enabled: true
+  port: 8642
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

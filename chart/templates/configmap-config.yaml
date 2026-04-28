@@ -1,0 +1,17 @@
+{{- if or .Values.hermes.config .Values.hermes.soul }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "hermes.fullname" . }}-config
+  labels:
+    {{- include "hermes.labels" . | nindent 4 }}
+data:
+  {{- if .Values.hermes.config }}
+  config.yaml: |
+    {{- .Values.hermes.config | nindent 4 }}
+  {{- end }}
+  {{- if .Values.hermes.soul }}
+  SOUL.md: |
+    {{- .Values.hermes.soul | nindent 4 }}
+  {{- end }}
+{{- end }}

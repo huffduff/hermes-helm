@@ -1,0 +1,64 @@
+# ==============================================================================
+# Example: Telegram bot with OpenRouter + GitHub CLI
+# ==============================================================================
+# Usage:
+#   helm install hermes ./chart -f examples/telegram-openrouter.yaml
+# ==============================================================================
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/nousresearch/hermes-agent
+  tag: ""  # uses chart appVersion
+
+hermes:
+  command: ["gateway", "run"]
+  config: |
+    model:
+      default: anthropic/claude-sonnet-4
+      provider: openrouter
+    agent:
+      max_turns: 90
+    compression:
+      enabled: true
+      threshold: 0.50
+    security:
+      redact_secrets: true
+    approvals:
+      mode: smart
+
+env:
+  HERMES_HUMAN_DELAY_MODE: "off"
+
+secrets:
+  OPENROUTER_API_KEY: "sk-or-v1-your-key-here"
+  TELEGRAM_BOT_TOKEN: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+  API_SERVER_KEY: "your-api-server-key"
+  GITHUB_TOKEN: "ghp_your-github-token"
+
+gateway:
+  telegram:
+    enabled: true
+    homeChannel: "your-chat-name"
+    allowedUsers: "123456789"
+  allowAllUsers: false
+
+apiServer:
+  enabled: true
+  port: 8642
+  modelName: "hermes-agent"
+
+github:
+  enabled: true
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi

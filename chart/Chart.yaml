@@ -1,0 +1,17 @@
+apiVersion: v2
+name: hermes-agent
+description: Helm chart for Hermes Agent — the self-improving AI agent by Nous Research
+type: application
+version: 0.1.0
+appVersion: "0.11.0"
+home: https://github.com/NousResearch/hermes-agent
+sources:
+  - https://github.com/NousResearch/hermes-agent
+keywords:
+  - ai
+  - agent
+  - llm
+  - nous-research
+  - hermes
+maintainers:
+  - name: Tom O'Reilly
