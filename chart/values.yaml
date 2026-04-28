@@ -12,12 +12,12 @@ replicaCount: 1
 
 # -- Container image settings
 image:
-  # -- Image registry + repository. Build from the official Dockerfile at
-  # https://github.com/NousResearch/hermes-agent or use your own registry.
-  repository: ghcr.io/nousresearch/hermes-agent
-  # -- Image tag. Defaults to the chart's appVersion.
-  tag: ""
-  pullPolicy: IfNotPresent
+    # -- Image registry + repository. Build from the official Dockerfile at
+    # https://github.com/NousResearch/hermes-agent or use your own registry.
+    repository: ghcr.io/nousresearch/hermes-agent
+    # -- Image tag. Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
 
 # -- Image pull secrets for private registries
 imagePullSecrets: []
@@ -31,38 +31,42 @@ fullnameOverride: ""
 # ==============================================================================
 
 hermes:
-  # -- Hermes home directory inside the container (HERMES_HOME).
-  # This is where config, sessions, skills, memory, and all state live.
-  # Mounted as a persistent volume when persistence is enabled.
-  home: /opt/data
+    # -- Hermes home directory inside the container (HERMES_HOME).
+    # This is where config, sessions, skills, memory, and all state live.
+    # Mounted as a persistent volume when persistence is enabled.
+    home: /opt/data
 
-  # -- Command to run. "gateway run" starts the messaging gateway + API server.
-  # Override to "chat -q '...'" for one-shot jobs, or "sleep infinity" for a
-  # shell-only sandbox.
-  command: ["gateway", "run"]
+    # -- Hermes config.yaml contents. Rendered as a ConfigMap and mounted into
+    # HERMES_HOME. Set to null to skip (use the image default or an existing
+    # config on the PVC).
+    config: null
+    # Example:
+    # config: |
+    #   model:
+    #     default: anthropic/claude-sonnet-4
+    #     provider: openrouter
+    #   agent:
+    #     max_turns: 90
+    #   compression:
+    #     enabled: true
+    #     threshold: 0.50
+    #   security:
+    #     redact_secrets: true
+    #   approvals:
+    #     mode: smart
 
-  # -- Hermes config.yaml contents. Rendered as a ConfigMap and mounted into
-  # HERMES_HOME. Set to null to skip (use the image default or an existing
-  # config on the PVC).
-  config: null
-  # Example:
-  # config: |
-  #   model:
-  #     default: anthropic/claude-sonnet-4
-  #     provider: openrouter
-  #   agent:
-  #     max_turns: 90
-  #   compression:
-  #     enabled: true
-  #     threshold: 0.50
-  #   security:
-  #     redact_secrets: true
-  #   approvals:
-  #     mode: smart
+    # -- SOUL.md persona file contents. Rendered into HERMES_HOME/SOUL.md.
+    # Set to null to use the image default.
+    soul: null
 
-  # -- SOUL.md persona file contents. Rendered into HERMES_HOME/SOUL.md.
-  # Set to null to use the image default.
-  soul: null
+# ==============================================================================
+# Dashboard
+# ==============================================================================
+#
+dashboard:
+    enabled: false
+    port: 9119
+    annotations: {}
 
 # ==============================================================================
 # Environment Variables
@@ -71,9 +75,9 @@ hermes:
 # -- Plain-text environment variables injected into the container.
 # Use this for non-sensitive configuration.
 env:
-  HERMES_HUMAN_DELAY_MODE: "off"
-  # HERMES_HUMAN_DELAY_MIN_MS: "800"
-  # HERMES_HUMAN_DELAY_MAX_MS: "2500"
+    HERMES_HUMAN_DELAY_MODE: "off"
+    # HERMES_HUMAN_DELAY_MIN_MS: "800"
+    # HERMES_HUMAN_DELAY_MAX_MS: "2500"
 
 # -- Sensitive environment variables. These are stored in a Kubernetes Secret
 # and injected into the container. Values here are base64-encoded
@@ -96,49 +100,49 @@ existingSecret: ""
 # ==============================================================================
 
 gateway:
-  # -- Telegram
-  telegram:
-    enabled: false
-    # botToken: ""          # Prefer secrets.TELEGRAM_BOT_TOKEN
-    homeChannel: ""
-    allowedUsers: ""
+    # -- Telegram
+    telegram:
+        enabled: false
+        # botToken: ""          # Prefer secrets.TELEGRAM_BOT_TOKEN
+        homeChannel: ""
+        allowedUsers: ""
 
-  # -- Discord
-  discord:
-    enabled: false
-    # botToken: ""          # Prefer secrets.DISCORD_BOT_TOKEN
-    homeChannel: ""
-    allowedUsers: ""
+    # -- Discord
+    discord:
+        enabled: false
+        # botToken: ""          # Prefer secrets.DISCORD_BOT_TOKEN
+        homeChannel: ""
+        allowedUsers: ""
 
-  # -- General
-  allowAllUsers: false
+    # -- General
+    allowAllUsers: false
 
 # ==============================================================================
 # API Server (OpenAI-compatible endpoint)
 # ==============================================================================
 
 apiServer:
-  # -- Enable the built-in API server
-  enabled: true
-  # -- Host to bind to inside the container
-  host: "0.0.0.0"
-  # -- Port for the API server
-  port: 8642
-  # -- Model name reported in API responses
-  modelName: "hermes-agent"
-  # -- API key for authentication. Prefer secrets.API_SERVER_KEY.
-  # key: ""
-  # -- CORS origins (comma-separated)
-  corsOrigins: ""
+    # -- Enable the built-in API server
+    enabled: true
+    # -- Host to bind to inside the container
+    host: "0.0.0.0"
+    # -- Port for the API server
+    port: 8642
+    # -- Model name reported in API responses
+    modelName: "hermes-agent"
+    # -- API key for authentication. Prefer secrets.API_SERVER_KEY.
+    # key: ""
+    # -- CORS origins (comma-separated)
+    corsOrigins: ""
 
 # ==============================================================================
 # GitHub CLI Integration
 # ==============================================================================
 
 github:
-  # -- Enable GitHub CLI (gh) authentication on startup.
-  # Requires GITHUB_TOKEN in secrets or existingSecret.
-  enabled: false
+    # -- Enable GitHub CLI (gh) authentication on startup.
+    # Requires GITHUB_TOKEN in secrets or existingSecret.
+    enabled: false
 
 # ==============================================================================
 # Init Containers
@@ -153,65 +157,65 @@ extraInitContainers: []
 # ==============================================================================
 
 persistence:
-  # -- Enable persistent storage for HERMES_HOME
-  enabled: true
-  # -- Storage class. Leave empty for cluster default.
-  storageClass: ""
-  # -- Access mode
-  accessMode: ReadWriteOnce
-  # -- Volume size
-  size: 10Gi
-  # -- Use an existing PVC instead of creating one
-  existingClaim: ""
-  # -- Annotations for the PVC
-  annotations: {}
+    # -- Enable persistent storage for HERMES_HOME
+    enabled: true
+    # -- Storage class. Leave empty for cluster default.
+    storageClass: ""
+    # -- Access mode
+    accessMode: ReadWriteOnce
+    # -- Volume size
+    size: 10Gi
+    # -- Use an existing PVC instead of creating one
+    existingClaim: ""
+    # -- Annotations for the PVC
+    annotations: {}
 
 # ==============================================================================
 # Service
 # ==============================================================================
 
 service:
-  type: ClusterIP
-  port: 8642
+    type: ClusterIP
+    port: 8642
 
 # ==============================================================================
 # Ingress
 # ==============================================================================
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  # Example:
-  #   kubernetes.io/ingress.class: nginx
-  #   cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: hermes.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-  #  - secretName: hermes-tls
-  #    hosts:
-  #      - hermes.example.com
+    enabled: false
+    className: ""
+    annotations: {}
+    # Example:
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+        - host: hermes.example.com
+          paths:
+              - path: /
+                pathType: Prefix
+    tls: []
+    #  - secretName: hermes-tls
+    #    hosts:
+    #      - hermes.example.com
 
 # ==============================================================================
 # HTTPRoute (Gateway API — recommended for Helm 4 / modern clusters)
 # ==============================================================================
 
 httpRoute:
-  enabled: false
-  # -- Name of the Gateway resource to attach to
-  parentGateway: ""
-  # -- Section name on the Gateway listener (optional)
-  sectionName: ""
-  hostnames: []
-  #  - hermes.example.com
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
+    enabled: false
+    # -- Name of the Gateway resource to attach to
+    parentGateway: ""
+    # -- Section name on the Gateway listener (optional)
+    sectionName: ""
+    hostnames: []
+    #  - hermes.example.com
+    rules:
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /
 
 # ==============================================================================
 # Pod Settings
@@ -229,14 +233,14 @@ resources: {}
 
 # -- Security context for the pod
 podSecurityContext: {}
-  # runAsUser: 10000
-  # runAsGroup: 10000
-  # fsGroup: 10000
+    # runAsUser: 10000
+    # runAsGroup: 10000
+    # fsGroup: 10000
 
 # -- Security context for the hermes container
 securityContext: {}
-  # readOnlyRootFilesystem: false
-  # allowPrivilegeEscalation: false
+    # readOnlyRootFilesystem: false
+    # allowPrivilegeEscalation: false
 
 # -- Node selector
 nodeSelector: {}
@@ -255,27 +259,27 @@ podLabels: {}
 
 # -- Service account
 serviceAccount:
-  create: true
-  name: ""
-  annotations: {}
+    create: true
+    name: ""
+    annotations: {}
 
 # -- Liveness probe
 livenessProbe:
-  enabled: false
-  httpGet:
-    path: /health
-    port: api
-  initialDelaySeconds: 30
-  periodSeconds: 60
+    enabled: false
+    httpGet:
+        path: /health
+        port: api
+    initialDelaySeconds: 30
+    periodSeconds: 60
 
 # -- Readiness probe
 readinessProbe:
-  enabled: false
-  httpGet:
-    path: /health
-    port: api
-  initialDelaySeconds: 10
-  periodSeconds: 10
+    enabled: false
+    httpGet:
+        path: /health
+        port: api
+    initialDelaySeconds: 10
+    periodSeconds: 10
 
 # -- Extra volumes to mount
 extraVolumes: []

@@ -74,13 +74,12 @@ spec:
 
       # ── Main Container ───────────────────────────────────────────────
       containers:
-        - name: hermes
+        - name: gateway
           image: {{ include "hermes.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.hermes.command }}
           args:
-            {{- toYaml .Values.hermes.command | nindent 12 }}
-          {{- end }}
+            - gateway
+            - run
           ports:
             - name: api
               containerPort: {{ .Values.apiServer.port }}
@@ -130,6 +129,39 @@ spec:
           readinessProbe:
             {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
           {{- end }}
+        {{- if .Values.dashboard.enabled }}
+        - name: dashboard
+          image: {{ include "hermes.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - dashboard
+          env:
+            - name: GATEWAY_HEALTH_URL
+              value: "http://localhost:{{ .Value.apiServer.port }}"
+          ports:
+            - name: dashboard
+              containerPort: {{ .Values.dashboard.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.hermes.home }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+        {{- end }}
 
       # ── Volumes ──────────────────────────────────────────────────────
       volumes:
