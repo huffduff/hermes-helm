@@ -117,17 +117,23 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.resources }}
+          {{- with .Values.hermes.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+            httpGet:
+              path: /health
+              port: api
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+            httpGet:
+              path: /health
+              port: api
           {{- end }}
         {{- if .Values.dashboard.enabled }}
         - name: dashboard
@@ -135,9 +141,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - dashboard
-          env:
-            - name: GATEWAY_HEALTH_URL
-              value: "http://localhost:{{ .Value.apiServer.port }}"
+          envFrom:
+            - configMapRef:
+                name: {{ include "hermes.fullname" . }}-env
           ports:
             - name: dashboard
               containerPort: {{ .Values.dashboard.port }}
@@ -149,17 +155,23 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.resources }}
+          {{- with .Values.dashboard.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+            httpGet:
+              path: /health
+              port: dashboard
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+            httpGet:
+              path: /health
+              port: dashboard
           {{- end }}
         {{- end }}
 

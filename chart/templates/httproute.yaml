@@ -18,11 +18,20 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.httpRoute.rules }}
     - matches:
-        {{- toYaml .matches | nindent 8 }}
+        - path:
+            type: PathPrefix
+            value: /v1
       backendRefs:
         - name: {{ include "hermes.fullname" $ }}
           port: {{ $.Values.service.port }}
+    {{- if $.Values.dashboard.enabled }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ include "hermes.fullname" $ }}
+          port: {{ $.Values.dashboard.port }}
     {{- end }}
 {{- end }}

@@ -31,6 +31,16 @@ fullnameOverride: ""
 # ==============================================================================
 
 hermes:
+    # -- Resource requests and limits
+    resources: {}
+    # Example:
+    #   requests:
+    #     cpu: 250m
+    #     memory: 512Mi
+    #   limits:
+    #     cpu: "2"
+    #     memory: 2Gi
+
     # -- Hermes home directory inside the container (HERMES_HOME).
     # This is where config, sessions, skills, memory, and all state live.
     # Mounted as a persistent volume when persistence is enabled.
@@ -66,7 +76,15 @@ hermes:
 dashboard:
     enabled: false
     port: 9119
-    annotations: {}
+    # -- Resource requests and limits
+    resources: {}
+    # Example:
+    #   requests:
+    #     cpu: 250m
+    #     memory: 256Mi
+    #   limits:
+    #     cpu: 500m
+    #     memory: 512Mi
 
 # ==============================================================================
 # Environment Variables
@@ -190,10 +208,7 @@ ingress:
     #   kubernetes.io/ingress.class: nginx
     #   cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
-        - host: hermes.example.com
-          paths:
-              - path: /
-                pathType: Prefix
+        - hermes.example.com
     tls: []
     #  - secretName: hermes-tls
     #    hosts:
@@ -211,25 +226,10 @@ httpRoute:
     sectionName: ""
     hostnames: []
     #  - hermes.example.com
-    rules:
-        - matches:
-              - path:
-                    type: PathPrefix
-                    value: /
 
 # ==============================================================================
 # Pod Settings
 # ==============================================================================
-
-# -- Resource requests and limits
-resources: {}
-# Example:
-#   requests:
-#     cpu: 250m
-#     memory: 512Mi
-#   limits:
-#     cpu: "2"
-#     memory: 2Gi
 
 # -- Security context for the pod
 podSecurityContext: {}
@@ -266,18 +266,12 @@ serviceAccount:
 # -- Liveness probe
 livenessProbe:
     enabled: false
-    httpGet:
-        path: /health
-        port: api
     initialDelaySeconds: 30
     periodSeconds: 60
 
 # -- Readiness probe
 readinessProbe:
     enabled: false
-    httpGet:
-        path: /health
-        port: api
     initialDelaySeconds: 10
     periodSeconds: 10
 

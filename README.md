@@ -11,7 +11,7 @@ A clean, opinionated Helm chart for deploying [Hermes Agent](https://github.com/
 | Resource | Always | Conditional |
 |----------|--------|-------------|
 | Gateway | ✓ | |
-| Dashbaord | | `dashboard.enabled` |
+| Dashboard | | `dashboard.enabled` |
 | Service | ✓ | |
 | ServiceAccount | ✓ | `serviceAccount.create` |
 | ConfigMap (env) | ✓ | |
@@ -95,6 +95,7 @@ helm upgrade hermes ./chart -f my-values.yaml
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| `hermes.resources` | map | `{}` | CPU/memory requests and limits for the gateway container |
 | `hermes.home` | string | `/opt/data` | HERMES_HOME path |
 | `hermes.config` | string | `null` | Contents of `config.yaml` (mounted via ConfigMap) |
 | `hermes.soul` | string | `null` | Contents of `SOUL.md` persona file |
@@ -105,7 +106,7 @@ helm upgrade hermes ./chart -f my-values.yaml
 |-----|------|---------|-------------|
 | `dashboard.enabled` | bool | `false` | Enable dashboard sidecar |
 | `dashboard.port` | int | `9119` | Port |
-| `dashboard.annotations` | string | `null` | Contents of `SOUL.md` persona file |
+| `dashboard.resources` | map | `{}` | CPU/memory requests and limits for the dashboard container |
 
 #### Environment & Secrets
 
@@ -170,7 +171,6 @@ Requires `GITHUB_TOKEN` in `secrets` or `existingSecret`.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `resources` | map | `{}` | CPU/memory requests and limits |
 | `nodeSelector` | map | `{}` | Node selection constraints |
 | `tolerations` | list | `[]` | Pod tolerations |
 | `affinity` | map | `{}` | Affinity rules |
@@ -263,7 +263,7 @@ The official Hermes Docker image uses an entrypoint (`docker/entrypoint.sh`) tha
 4. Syncs bundled skills
 5. Execs `hermes <args>`
 
-The chart passes `hermes.command` as args to this entrypoint (default: `gateway run`).
+The chart passes `gateway run` as args to this entrypoint.
 
 ### Config Layering
 

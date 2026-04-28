@@ -14,6 +14,11 @@ data:
   API_SERVER_HOST: {{ .Values.apiServer.host | quote }}
   API_SERVER_PORT: {{ .Values.apiServer.port | quote }}
   API_SERVER_MODEL_NAME: {{ .Values.apiServer.modelName | quote }}
+
+  {{- if .Values.dashboard.enabled }}
+  GATEWAY_HEALTH_URL: http://localhost:{{ .Values.apiServer.port }}
+  {{- end }}
+
   {{- if .Values.apiServer.corsOrigins }}
   API_SERVER_CORS_ORIGINS: {{ .Values.apiServer.corsOrigins | quote }}
   {{- end }}

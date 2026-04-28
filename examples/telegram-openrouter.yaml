@@ -12,7 +12,6 @@ image:
   tag: ""  # uses chart appVersion
 
 hermes:
-  command: ["gateway", "run"]
   config: |
     model:
       default: anthropic/claude-sonnet-4
@@ -26,6 +25,13 @@ hermes:
       redact_secrets: true
     approvals:
       mode: smart
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
 
 env:
   HERMES_HUMAN_DELAY_MODE: "off"
@@ -54,11 +60,3 @@ github:
 persistence:
   enabled: true
   size: 10Gi
-
-resources:
-  requests:
-    cpu: 250m
-    memory: 512Mi
-  limits:
-    cpu: "2"
-    memory: 2Gi

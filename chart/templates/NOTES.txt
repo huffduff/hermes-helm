@@ -39,4 +39,7 @@ GitHub CLI: gh is authenticated via init container.
 {{- end }}
 
 Logs:
-  kubectl logs -f deploy/{{ include "hermes.fullname" . }}
+  kubectl logs -f deploy/{{ include "hermes.fullname" . }} -c gateway
+  {{- if .Values.dashboard.enabled }}
+  kubectl logs -f deploy/{{ include "hermes.fullname" . }} -c dashboard
+  {{- end }}

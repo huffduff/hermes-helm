@@ -25,17 +25,24 @@ spec:
   {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
+    - host: {{ . | quote }}
       http:
         paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
+          - path: "/v1"
+            pathType: Prefix
             backend:
               service:
                 name: {{ include "hermes.fullname" $ }}
                 port:
                   name: api-server
+          {{- if $.Values.dashboard.enabled }}
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "hermes.fullname" $ }}
+                port:
+                  name: dashboard
           {{- end }}
     {{- end }}
 {{- end }}

@@ -11,5 +11,11 @@ spec:
       targetPort: api
       protocol: TCP
       name: api-server
+    {{- if .Values.dashboard.enabled }}
+    - port: {{ .Values.dashboard.port }}
+      targetPort: dashboard
+      protocol: TCP
+      name: dashboard
+    {{- end }}
   selector:
     {{- include "hermes.selectorLabels" . | nindent 4 }}
