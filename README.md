@@ -144,7 +144,7 @@ helm upgrade hermes ./chart -f my-values.yaml
 |-----|------|---------|-------------|
 | `github.enabled` | bool | `false` | Run `gh auth login` in an init container |
 
-Requires `GITHUB_TOKEN` in `secrets` or `existingSecret`.
+**NOTE:** Requires `GITHUB_TOKEN` in `secrets` or `existingSecret`. Also requires a custom container that includes `gh`. A [Dockerfile](Dockerfile) is provided to build one.
 
 #### Persistence
 
